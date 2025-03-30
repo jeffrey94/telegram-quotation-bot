@@ -13,20 +13,7 @@ from pathlib import Path
 from datetime import datetime
 import jinja2
 from app.utils.models import QuotationData, QuotationItem
-from app.config.settings import (
-    TEMP_DIR,
-    TEMPLATES_DIR,
-    COMPANY_NAME,
-    COMPANY_REG_NO,
-    COMPANY_ADDRESS,
-    COMPANY_PHONE,
-    COMPANY_FAX,
-    COMPANY_EMAIL,
-    FACTORY_ADDRESS,
-    FACTORY_PHONE,
-    FACTORY_FAX,
-    CURRENCY_SYMBOL
-)
+from app.config import Config
 
 # Add the project root to the Python path if running this script directly
 if __name__ == "__main__":
@@ -34,23 +21,30 @@ if __name__ == "__main__":
     if str(project_root) not in sys.path:
         sys.path.insert(0, str(project_root))
 
+# Define constants for backward compatibility
+TEMP_DIR = Path(Config.STORAGE_PATH)
+TEMPLATES_DIR = Path(__file__).parent.parent / 'templates'
+
 def format_currency(amount: float) -> str:
-    return f"{CURRENCY_SYMBOL}{amount:,.2f}"
+    return f"${amount:,.2f}"
 
 def create_sample_quotation() -> QuotationData:
     """Create a sample quotation for testing."""
     items = [
         QuotationItem(
+            item_no="001",
             item_name="Interior Design Consultation",
             quantity=1,
             unit_price=2500.00
         ),
         QuotationItem(
+            item_no="002",
             item_name="3D Visualization - Living Room",
             quantity=2,
             unit_price=1800.00
         ),
         QuotationItem(
+            item_no="003",
             item_name="Detailed Construction Drawing",
             quantity=1,
             unit_price=3500.00
@@ -90,30 +84,22 @@ def generate_quotation_html(quotation: QuotationData) -> str:
 
     # Render the template with escaped variables
     html = template.render(
+        env=Config.get_company_info(),
         quotation_number=quotation.quotation_number,
-        created_date=quotation.created_date.strftime('%d %b %Y'),
-        expiry_date=quotation.expiry_date.strftime('%d %b %Y'),
-        customer_name=quotation.customer_name,
-        customer_company=quotation.customer_company,
-        customer_address=quotation.customer_address,
-        customer_phone=quotation.customer_phone,
-        customer_email=quotation.customer_email,
+        quotation_date=quotation.formatted_created_date,
+        expiry_date=quotation.formatted_expiry_date,
+        client_company=quotation.customer_company,
+        client_address=quotation.customer_address,
+        client_contact=quotation.customer_name,
+        client_phone=quotation.customer_phone,
+        client_email=quotation.customer_email,
         items=quotation.items,
         subtotal=quotation.subtotal,
         discount=quotation.discount,
-        grand_total=quotation.grand_total,
-        terms=quotation.terms,
+        total_quoted_amount=quotation.grand_total,
+        terms_and_conditions=quotation.terms.split('\n') if '\n' in quotation.terms else [quotation.terms],
         notes=quotation.notes,
         issued_by=quotation.issued_by,
-        company_name=quotation.company_name,
-        company_reg_no=quotation.company_reg_no,
-        company_address=quotation.company_address,
-        company_phone=quotation.company_phone,
-        company_fax=quotation.company_fax,
-        company_email=quotation.company_email,
-        factory_address=quotation.factory_address,
-        factory_phone=quotation.factory_phone,
-        factory_fax=quotation.factory_fax,
         format_currency=format_currency
     )
 
@@ -136,6 +122,19 @@ def main():
         html_file.write_text(html, encoding='utf-8')
         print(f"HTML file saved at: {html_file}")
         print("You can open this HTML file in your browser and use the browser's built-in 'Save as PDF' or 'Print to PDF' feature.")
+        
+        # Open the file in the default browser - properly handling paths with spaces
+        try:
+            if sys.platform == 'win32':
+                import subprocess
+                subprocess.Popen(['start', '', str(html_file)], shell=True)
+            elif sys.platform == 'darwin':  # macOS
+                os.system(f'open "{html_file}"')
+            else:  # Linux
+                os.system(f'xdg-open "{html_file}"')
+        except Exception as browser_error:
+            print(f"Note: Could not automatically open the file in browser: {browser_error}")
+            print(f"Please open the file manually at: {html_file}")
 
     except Exception as e:
         print(f"Error generating quotation: {e}")

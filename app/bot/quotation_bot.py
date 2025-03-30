@@ -13,7 +13,7 @@ from telegram.ext import (
     CallbackContext,
     filters
 )
-from app.config.settings import TELEGRAM_BOT_TOKEN, ALLOWED_USER_IDS, ALLOWED_GROUP_IDS
+from app.config import Config
 from app.utils.models import QuotationData, QuotationItem
 from app.utils.test_pdf import generate_quotation_html
 from .constants import (
@@ -62,18 +62,18 @@ def is_authorized(update: Update) -> bool:
     chat_type = update.effective_chat.type
     
     logger.info(f"Authorization check - User ID: {user_id}, Chat ID: {chat_id}, Chat Type: {chat_type}")
-    logger.info(f"Allowed Users: {ALLOWED_USER_IDS}")
-    logger.info(f"Allowed Groups: {ALLOWED_GROUP_IDS}")
+    logger.info(f"Allowed Users: {Config.ALLOWED_USER_IDS}")
+    logger.info(f"Allowed Groups: {Config.ALLOWED_GROUP_IDS}")
     
     # Check if it's a private chat with an authorized user
     if chat_type == Chat.PRIVATE:
-        is_allowed = user_id in ALLOWED_USER_IDS
+        is_allowed = user_id in Config.ALLOWED_USER_IDS
         logger.info(f"Private chat authorization result: {is_allowed}")
         return is_allowed
     
     # Check if it's a group chat that's authorized
     if chat_type in [Chat.GROUP, Chat.SUPERGROUP]:
-        is_allowed = chat_id in ALLOWED_GROUP_IDS
+        is_allowed = chat_id in Config.ALLOWED_GROUP_IDS
         logger.info(f"Group chat authorization result: {is_allowed}")
         return is_allowed
         
@@ -225,10 +225,11 @@ async def cancel(update: Update, context: CallbackContext) -> int:
     
     return ConversationHandler.END
 
-def main() -> None:
-    """Start the bot."""
-    # Create the Application
-    application = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
+def main(application: Application = None) -> None:
+    """Set up and run the bot."""
+    # Create the application if not provided
+    if application is None:
+        application = Application.builder().token(Config.BOT_TOKEN).build()
 
     # Add conversation handler
     conv_handler = ConversationHandler(
@@ -239,21 +240,19 @@ def main() -> None:
             CUSTOMER_ADDRESS: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_customer_address)],
             CUSTOMER_PHONE: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_customer_phone)],
             CUSTOMER_EMAIL: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_customer_email)],
+            ADD_ITEMS: [
+                MessageHandler(filters.Regex('(?i)^(yes|no)$'), handle_add_items),
+                MessageHandler(filters.TEXT & ~filters.COMMAND, lambda u, c: handle_add_items(u, c, retry=True))
+            ],
             ITEM_NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_item_name)],
             ITEM_QUANTITY: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_item_quantity)],
             ITEM_PRICE: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_item_price)],
-            ADD_ITEMS: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_add_items)],
             TERMS: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_terms)],
             NOTES: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_notes)],
             ISSUED_BY: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_issued_by)],
             DISCOUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_discount)]
         },
-        fallbacks=[CommandHandler('cancel', cancel)],
-        name="quotation_conversation",
-        persistent=False,
-        allow_reentry=True,
-        per_chat=False,
-        per_user=True
+        fallbacks=[CommandHandler('cancel', cancel)]
     )
 
     # Add handlers
@@ -261,8 +260,9 @@ def main() -> None:
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(conv_handler)
 
-    # Start the Bot
-    application.run_polling(allowed_updates=Update.ALL_TYPES)
+    # Only run polling if this script is run directly
+    if __name__ == '__main__':
+        application.run_polling()
 
 if __name__ == '__main__':
     main() 

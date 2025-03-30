@@ -2,15 +2,12 @@ from datetime import datetime, timedelta
 from typing import List, Optional
 from pydantic import BaseModel, Field, field_validator
 import random
-from app.config.settings import (
-    COMPANY_NAME, COMPANY_REG_NO, COMPANY_ADDRESS, COMPANY_PHONE,
-    COMPANY_FAX, COMPANY_EMAIL, FACTORY_ADDRESS, FACTORY_PHONE,
-    FACTORY_FAX, CURRENCY_SYMBOL
-)
+from app.config import Config
 
 
 class QuotationItem(BaseModel):
     """Model for a single line item in a quotation."""
+    item_no: str  # Changed to str to allow custom item numbers like "001"
     item_name: str
     quantity: int
     unit_price: float
@@ -47,15 +44,18 @@ class QuotationData(BaseModel):
     discount: float = 0
 
     # Company Details (from settings)
-    company_name: str = COMPANY_NAME
-    company_reg_no: str = COMPANY_REG_NO
-    company_address: str = COMPANY_ADDRESS
-    company_phone: str = COMPANY_PHONE
-    company_fax: str = COMPANY_FAX
-    company_email: str = COMPANY_EMAIL
-    factory_address: str = FACTORY_ADDRESS
-    factory_phone: str = FACTORY_PHONE
-    factory_fax: str = FACTORY_FAX
+    company_name: str = Config.COMPANY_NAME
+    company_address: str = Config.COMPANY_ADDRESS
+    company_phone: str = Config.COMPANY_PHONE
+    company_email: str = Config.COMPANY_EMAIL
+    
+    # For backward compatibility
+    company_reg_no: str = ""
+    company_fax: str = ""
+    factory_address: str = ""
+    factory_phone: str = ""
+    factory_fax: str = ""
+    currency_symbol: str = "$"
 
     @field_validator('customer_name')
     def validate_customer_name(cls, v):
@@ -73,7 +73,7 @@ class QuotationData(BaseModel):
     def model_post_init(self, __context):
         super().model_post_init(__context)
         if self.expiry_date is None:
-            self.expiry_date = self.created_date + timedelta(days=14)
+            self.expiry_date = self.created_date + timedelta(days=Config.QUOTATION_EXPIRY_DAYS)
         if self.quotation_number is None:
             random_number = ''.join([str(random.randint(0, 9)) for _ in range(5)])
             self.quotation_number = f"QUO-{random_number}"
@@ -81,12 +81,12 @@ class QuotationData(BaseModel):
     @property
     def formatted_created_date(self) -> str:
         """Get the formatted creation date."""
-        return self.created_date.strftime(DATE_FORMAT)
+        return self.created_date.strftime("%d %b %Y")
     
     @property
     def formatted_expiry_date(self) -> str:
         """Get the formatted expiry date."""
-        return self.expiry_date.strftime(DATE_FORMAT)
+        return self.expiry_date.strftime("%d %b %Y")
     
     @property
     def subtotal(self) -> float:

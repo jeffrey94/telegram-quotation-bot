@@ -164,9 +164,14 @@ async def handle_item_price(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         current_item = context.user_data['current_item']
         current_item['price'] = price
         
+        # Get the count of existing items to create the item number
+        item_count = len(quotation_data[user_id]['items']) + 1
+        item_number = f"{item_count:03d}"  # Format as 001, 002, etc.
+        
         # Add the item to the quotation
         quotation_data[user_id]['items'].append(
             QuotationItem(
+                item_no=item_number,
                 item_name=current_item['name'],
                 quantity=current_item['quantity'],
                 unit_price=current_item['price']

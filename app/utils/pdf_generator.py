@@ -4,19 +4,7 @@ from datetime import datetime
 import jinja2
 from weasyprint import HTML
 from app.utils.models import QuotationData
-from app.config.settings import (
-    TEMPLATES_DIR, 
-    TEMP_DIR, 
-    COMPANY_NAME, 
-    COMPANY_ADDRESS, 
-    COMPANY_PHONE, 
-    COMPANY_EMAIL, 
-    COMPANY_WEBSITE,
-    COMPANY_LOGO_PATH,
-    CURRENCY_SYMBOL,
-    SAVE_TO_STORAGE,
-    STORAGE_PATH
-)
+from app.config import Config
 
 
 class PDFGenerator:
@@ -24,28 +12,31 @@ class PDFGenerator:
     
     def __init__(self):
         """Initialize the PDF generator with Jinja2 environment."""
+        templates_dir = Path(__file__).parent.parent / 'templates'
+        temp_dir = Path(Config.STORAGE_PATH) if Config.SAVE_TO_STORAGE else Path('temp')
+        
         self.env = jinja2.Environment(
-            loader=jinja2.FileSystemLoader(TEMPLATES_DIR),
+            loader=jinja2.FileSystemLoader(templates_dir),
             autoescape=jinja2.select_autoescape(['html', 'xml'])
         )
         
         # Create temp directory if it doesn't exist
-        os.makedirs(TEMP_DIR, exist_ok=True)
+        os.makedirs(temp_dir, exist_ok=True)
         
         # Create storage directory if enabled
-        if SAVE_TO_STORAGE:
-            os.makedirs(STORAGE_PATH, exist_ok=True)
+        if Config.SAVE_TO_STORAGE:
+            os.makedirs(Config.STORAGE_PATH, exist_ok=True)
     
     def _get_template_context(self, quotation_data: QuotationData) -> dict:
         """Prepare the context data for the template."""
         return {
             # Company details
-            'company_name': COMPANY_NAME,
-            'company_address': COMPANY_ADDRESS,
-            'company_phone': COMPANY_PHONE,
-            'company_email': COMPANY_EMAIL,
-            'company_website': COMPANY_WEBSITE,
-            'company_logo': COMPANY_LOGO_PATH if COMPANY_LOGO_PATH else None,
+            'company_name': Config.COMPANY_NAME,
+            'company_address': Config.COMPANY_ADDRESS,
+            'company_phone': Config.COMPANY_PHONE,
+            'company_email': Config.COMPANY_EMAIL,
+            'company_website': Config.COMPANY_WEBSITE,
+            'company_logo': Config.COMPANY_LOGO_URL if hasattr(Config, 'COMPANY_LOGO_URL') else None,
             
             # Quotation details
             'quotation_number': quotation_data.quotation_number,
@@ -56,10 +47,10 @@ class PDFGenerator:
             
             # Calculations
             'subtotal': quotation_data.subtotal,
-            'currency': CURRENCY_SYMBOL,
+            'currency': "$",
             
             # Utility for template
-            'format_currency': lambda value: f"{CURRENCY_SYMBOL}{value:,.2f}"
+            'format_currency': lambda value: f"${value:,.2f}"
         }
     
     def generate_pdf(self, quotation_data: QuotationData) -> Path:
@@ -73,14 +64,14 @@ class PDFGenerator:
         
         # Define the output path
         pdf_filename = quotation_data.filename
-        pdf_path = TEMP_DIR / pdf_filename
+        pdf_path = temp_dir / pdf_filename
         
         # Generate PDF from HTML
         HTML(string=html_content).write_pdf(pdf_path)
         
         # Optionally save to storage
-        if SAVE_TO_STORAGE:
-            storage_file_path = Path(STORAGE_PATH) / pdf_filename
+        if Config.SAVE_TO_STORAGE:
+            storage_file_path = Path(Config.STORAGE_PATH) / pdf_filename
             with open(pdf_path, 'rb') as src_file:
                 with open(storage_file_path, 'wb') as dest_file:
                     dest_file.write(src_file.read())
