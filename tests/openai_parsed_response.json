@@ -1,0 +1,26 @@
+{
+  "data": {
+    "customer_name": "Tan Ah Kow",
+    "customer_company": "Testing Sdn Bhd",
+    "customer_address": "N33-1, Jalan SS5, Taman Pelangi",
+    "customer_phone": "01066907222",
+    "customer_email": "hijef@gmail.com",
+    "items": [
+      {
+        "name": "Table",
+        "quantity": 5,
+        "unit_price": 1000
+      },
+      {
+        "name": "Chair",
+        "quantity": 10,
+        "unit_price": 250
+      }
+    ],
+    "terms": "Payment 25% upfront, Remaining payment on delivery",
+    "notes": "",
+    "discount": null,
+    "issued_by": ""
+  },
+  "missing_fields": []
+}

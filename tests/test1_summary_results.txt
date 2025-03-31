@@ -1,0 +1,14 @@
+Here is a summary of the quotation data:
+
+Customer: Tan Ah Kow from Testing Sdn Bhd
+Address: N33-1, Jalan SS5, Taman Pelangi
+Phone: 01066907222
+Email: hijef@gmail.com
+
+Items:
+1. Table - Quantity: 5, Unit Price: $1000
+2. Chair - Quantity: 10, Unit Price: $250
+
+Special Terms: Payment 25% upfront, Remaining payment on delivery
+
+No notes or discounts mentioned.

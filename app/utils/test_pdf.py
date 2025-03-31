@@ -26,7 +26,13 @@ TEMP_DIR = Path(Config.STORAGE_PATH)
 TEMPLATES_DIR = Path(__file__).parent.parent / 'templates'
 
 def format_currency(amount: float) -> str:
-    return f"${amount:,.2f}"
+    """Format currency values with 2 decimal places."""
+    if isinstance(amount, str):
+        try:
+            amount = float(amount)
+        except (ValueError, TypeError):
+            amount = 0.0
+    return f"${amount:.2f}"
 
 def create_sample_quotation() -> QuotationData:
     """Create a sample quotation for testing."""
@@ -69,6 +75,15 @@ def create_sample_quotation() -> QuotationData:
 
 def generate_quotation_html(quotation: QuotationData) -> str:
     """Generate HTML content for the quotation."""
+    # Defensive check to ensure we receive a QuotationData object
+    if not isinstance(quotation, QuotationData):
+        raise TypeError(f"Expected QuotationData object, got {type(quotation).__name__}")
+    
+    # Ensure all numeric values are proper floats
+    subtotal = float(quotation.subtotal)
+    discount = float(quotation.discount)
+    grand_total = float(quotation.grand_total)
+    
     # Set up Jinja2 environment with autoescape enabled for security
     template_dir = Path(__file__).parent.parent / 'templates'
     env = jinja2.Environment(
@@ -94,10 +109,10 @@ def generate_quotation_html(quotation: QuotationData) -> str:
         client_phone=quotation.customer_phone,
         client_email=quotation.customer_email,
         items=quotation.items,
-        subtotal=quotation.subtotal,
-        discount=quotation.discount,
-        total_quoted_amount=quotation.grand_total,
-        terms_and_conditions=quotation.terms.split('\n') if '\n' in quotation.terms else [quotation.terms],
+        subtotal=subtotal,
+        discount=discount,
+        total_quoted_amount=grand_total,
+        terms_and_conditions=quotation.terms.split('\n') if quotation.terms and '\n' in quotation.terms else ([quotation.terms] if quotation.terms else ["Payment terms not specified"]),
         notes=quotation.notes,
         issued_by=quotation.issued_by,
         format_currency=format_currency

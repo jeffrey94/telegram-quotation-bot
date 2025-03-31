@@ -9,19 +9,23 @@ class QuotationItem(BaseModel):
     """Model for a single line item in a quotation."""
     item_no: str  # Changed to str to allow custom item numbers like "001"
     item_name: str
-    quantity: int
+    quantity: float  # Changed from int to float for more flexibility
     unit_price: float
     
     @property
     def total_price(self) -> float:
         """Calculate the total price for this line item."""
-        return self.quantity * self.unit_price
+        # Ensure proper floating point calculation
+        qty = float(self.quantity)
+        price = float(self.unit_price)
+        return round(qty * price, 2)  # Round to 2 decimal places
     
     @field_validator('quantity', 'unit_price')
     def validate_positive_number(cls, v):
         if v <= 0:
             raise ValueError("Value must be greater than zero")
-        return v
+        # Convert to float to ensure consistent handling
+        return float(v)
 
 
 class QuotationData(BaseModel):
@@ -91,12 +95,14 @@ class QuotationData(BaseModel):
     @property
     def subtotal(self) -> float:
         """Calculate the subtotal of all items."""
-        return sum(item.total_price for item in self.items)
+        total = sum(item.total_price for item in self.items)
+        return round(total, 2)  # Round to 2 decimal places
     
     @property
     def grand_total(self) -> float:
         """Calculate the grand total after discount."""
-        return self.subtotal - self.discount
+        total = self.subtotal - float(self.discount)
+        return round(total, 2)  # Round to 2 decimal places
     
     @property
     def filename(self) -> str:

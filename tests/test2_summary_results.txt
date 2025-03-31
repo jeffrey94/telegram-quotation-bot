@@ -1,0 +1,9 @@
+Customer: Tan Ah Kow from Testing Sdn Bhd
+Address: N33-1, Jalan SS5, Taman Pelangi
+Email: hijef@gmail.com
+
+Items:
+- Table x 5 (Unit Price: $1000)
+- Chair x 10 (Unit Price: $250)
+
+Terms: Payment 25% upfront, Remaining payment on delivery

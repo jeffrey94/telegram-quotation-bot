@@ -19,6 +19,8 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
+.pytest_cache/
+.benchmarks/
 
 # Virtual Environment
 venv/
@@ -33,10 +35,11 @@ env/
 *.swo
 
 # Telegram Bot specific
-temp/
+temp/*
 *.html
 *.pdf
 *.log
+quotes/
 
 # Windows specific
 Thumbs.db

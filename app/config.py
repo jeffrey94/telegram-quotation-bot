@@ -9,6 +9,7 @@ class Config:
     BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
     
     # Authorization
+    PUBLIC_MODE = os.getenv('PUBLIC_MODE', 'False').lower() in ('true', '1', 't')  # Default to private mode
     ALLOWED_USER_IDS = [int(id.strip()) for id in os.getenv('ALLOWED_USER_IDS', '').split(',') if id.strip()]
     ALLOWED_GROUP_IDS = [int(id.strip()) for id in os.getenv('ALLOWED_GROUP_IDS', '').split(',') if id.strip()]
     
@@ -29,6 +30,9 @@ class Config:
     # Storage settings
     SAVE_TO_STORAGE = os.getenv('SAVE_TO_STORAGE', 'False').lower() in ('true', '1', 't')
     STORAGE_PATH = os.getenv('STORAGE_PATH', 'quotes')
+    
+    # OpenAI Configuration
+    OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
     
     @classmethod
     def get_company_info(cls):

@@ -1,0 +1,5 @@
+{
+  "validation_issues": [
+    "Missing required field: customer_phone"
+  ]
+}
