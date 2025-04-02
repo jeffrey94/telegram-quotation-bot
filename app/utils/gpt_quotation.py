@@ -13,15 +13,7 @@ logger = logging.getLogger(__name__)
 
 class GPTQuotationParser:
     def __init__(self):
-        self.api_key = Config.OPENAI_API_KEY
-        self.has_valid_api_key = bool(self.api_key)
-        
-        if self.has_valid_api_key:
-            self.client = AsyncOpenAI(api_key=self.api_key)
-        else:
-            logger.warning("No OpenAI API key provided. GPT features will be limited.")
-            self.client = None
-            
+        self.client = AsyncOpenAI(api_key=Config.OPENAI_API_KEY)
         self.model = "gpt-3.5-turbo"  # Using a more widely available model
         
     async def extract_quotation_data(self, text: str) -> Tuple[Dict, List[str]]:
@@ -29,21 +21,6 @@ class GPTQuotationParser:
         Extract structured quotation data from freeform text.
         Returns a tuple of (extracted_data, missing_fields).
         """
-        # If no API key is available, return a basic template with empty fields
-        if not self.has_valid_api_key:
-            logger.warning("OpenAI API key not available. Returning basic template.")
-            return {
-                "customer_name": "",
-                "customer_company": "",
-                "customer_address": "",
-                "customer_phone": "",
-                "customer_email": "",
-                "items": [],
-                "terms": "Standard terms and conditions apply",
-                "discount": 0,
-                "issued_by": ""
-            }, ["API key not configured - please add items manually"]
-            
         prompt = f"""Extract quotation data from the following text. 
         If the text has both "Previous information" and "Additional information" sections, merge them intelligently.
         
