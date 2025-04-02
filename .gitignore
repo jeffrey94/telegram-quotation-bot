@@ -37,6 +37,7 @@ env/
 # Telegram Bot specific
 temp/*
 *.html
+!app/templates/*.html
 *.pdf
 *.log
 quotes/

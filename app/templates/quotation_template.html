@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ company_name }} Quotation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: #333;
+            line-height: 1.5;
+            margin: 0;
+            padding: 20px;
+        }
+        .document {
+            max-width: 800px;
+            margin: 0 auto;
+            border: 1px solid #ddd;
+            padding: 30px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #2c3e50;
+            padding-bottom: 20px;
+        }
+        .logo img {
+            max-height: 70px;
+        }
+        .company-info h1 {
+            color: #2c3e50;
+            margin: 0;
+            font-size: 24px;
+        }
+        .company-info p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        .quotation-details {
+            margin-bottom: 30px;
+        }
+        .quotation-details h2 {
+            color: #2c3e50;
+            font-size: 20px;
+            margin-top: 0;
+        }
+        .customer-details {
+            margin-bottom: 30px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        th {
+            background-color: #2c3e50;
+            color: white;
+            text-align: left;
+            padding: 10px;
+        }
+        td {
+            border-bottom: 1px solid #ddd;
+            padding: 10px;
+        }
+        .item-description {
+            width: 40%;
+        }
+        .right-align {
+            text-align: right;
+        }
+        .totals {
+            margin-left: auto;
+            width: 40%;
+        }
+        .totals table {
+            margin-bottom: 0;
+        }
+        .totals td {
+            padding: 5px 10px;
+        }
+        .totals .total-row {
+            font-weight: bold;
+            border-top: 2px solid #2c3e50;
+        }
+        .notes {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+        .notes h3 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 12px;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+    <div class="document">
+        <div class="header">
+            <div class="company-info">
+                <h1>{{ company_name }}</h1>
+                <p>{{ company_address }}</p>
+                <p>Phone: {{ company_phone }}</p>
+                <p>Email: {{ company_email }}</p>
+                <p>Website: {{ company_website }}</p>
+            </div>
+            {% if company_logo %}
+            <div class="logo">
+                <img src="{{ company_logo }}" alt="{{ company_name }} Logo">
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="quotation-details">
+            <h2>QUOTATION</h2>
+            <p><strong>Quotation #:</strong> {{ quotation_number }}</p>
+            <p><strong>Date:</strong> {{ quotation_date }}</p>
+        </div>
+
+        <div class="customer-details">
+            <p><strong>To:</strong> {{ customer_name }}</p>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th class="item-description">Description</th>
+                    <th>Quantity</th>
+                    <th>Unit Price</th>
+                    <th class="right-align">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>{{ item.description }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ format_currency(item.unit_price) }}</td>
+                    <td class="right-align">{{ format_currency(item.quantity * item.unit_price) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="totals">
+            <table>
+                <tr>
+                    <td><strong>Subtotal:</strong></td>
+                    <td class="right-align">{{ format_currency(subtotal) }}</td>
+                </tr>
+                <tr class="total-row">
+                    <td><strong>TOTAL:</strong></td>
+                    <td class="right-align">{{ format_currency(subtotal) }}</td>
+                </tr>
+            </table>
+        </div>
+
+        {% if notes %}
+        <div class="notes">
+            <h3>Notes</h3>
+            <p>{{ notes }}</p>
+        </div>
+        {% endif %}
+
+        <div class="footer">
+            <p>Thank you for your business!</p>
+        </div>
+    </div>
+</body>
+</html> 
