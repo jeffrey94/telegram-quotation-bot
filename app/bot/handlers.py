@@ -27,7 +27,11 @@ from .constants import (
     AI_SUMMARY,
     quotation_data
 )
+from typing import Dict, List, Tuple, Any, Optional
 import logging
+import os
+from datetime import datetime
+from app.utils.file_cleanup import schedule_file_cleanup
 
 # Initialize GPT parser
 gpt_parser = GPTQuotationParser()
@@ -869,6 +873,9 @@ async def handle_ai_summary(update: Update, context: ContextTypes.DEFAULT_TYPE) 
                 text="Generating your quotation... 📄"
             )
             
+            # Make sure temp directory exists
+            os.makedirs("temp", exist_ok=True)
+            
             # Save HTML file
             html_path = f"temp/quotation_{user_id}.html"
             with open(html_path, "w", encoding="utf-8") as f:
@@ -881,6 +888,9 @@ async def handle_ai_summary(update: Update, context: ContextTypes.DEFAULT_TYPE) 
                 filename="quotation.html",
                 caption="Here's your quotation! 📄\nOpen it in a browser to view or save as PDF."
             )
+            
+            # Schedule file cleanup (10 minutes = 600 seconds)
+            schedule_file_cleanup(html_path, 600)
             
             # Clean up
             if user_id in quotation_data:
